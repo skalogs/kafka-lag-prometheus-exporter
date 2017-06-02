@@ -22,6 +22,7 @@
         <kafka.version>0.10.2.0</kafka.version>
         <jetty-servlet.version>9.4.5.v20170502</jetty-servlet.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
+        <jcommander.version>1.69</jcommander.version>
     </properties>
 
     <dependencyManagement>
@@ -63,6 +64,12 @@
                 <artifactId>jetty-servlet</artifactId>
                 <version>${jetty-servlet.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>com.beust</groupId>
+                <artifactId>jcommander</artifactId>
+                <version>${jcommander.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -92,11 +99,15 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
-            <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.beust</groupId>
+            <artifactId>jcommander</artifactId>
         </dependency>
     </dependencies>
 

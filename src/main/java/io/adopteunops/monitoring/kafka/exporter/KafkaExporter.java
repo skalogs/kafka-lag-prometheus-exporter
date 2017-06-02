@@ -66,7 +66,7 @@ public class KafkaExporter {
 
     private AdminClient createAdminClient(String kafkaHostname, int kafkaPort) {
         Properties props = new Properties();
-        props.put("bootstrap.servers", kafkaHostname + ":" + kafkaPort);
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHostname + ":" + kafkaPort);
 
         return AdminClient.create(props);
     }
@@ -75,22 +75,25 @@ public class KafkaExporter {
         Collection<GroupOverview> groupOverviews = JavaConverters.asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
         List<String> groups = groupOverviews.stream().map(t -> t.groupId()).collect(Collectors.toList());
 
-        for (String group : groups) {
+        groups.forEach(group -> {
             AdminClient.ConsumerGroupSummary consumerGroupSummary = adminClient.describeConsumerGroup(group);
             Map<TopicPartition, Object> offsets = JavaConverters.asJavaMapConverter(adminClient.listGroupOffsets(group)).asJava();
-            Collection<AdminClient.ConsumerSummary> consumerSummaries = JavaConverters.asJavaCollectionConverter(consumerGroupSummary.consumers().get()).asJavaCollection();
+            Optional<scala.collection.immutable.List<AdminClient.ConsumerSummary>> consumers = Optional.ofNullable(consumerGroupSummary.consumers().getOrElse(null));
+            if (consumers.isPresent()) {
+                Collection<AdminClient.ConsumerSummary> consumerSummaries = JavaConverters.asJavaCollectionConverter(consumers.get()).asJavaCollection();
 
-            consumerSummaries.stream().forEach(c -> {
-                offsets.forEach((k, v) -> {
-                            TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
-                            Long lag = getLogEndOffset(topicPartition) - new Long(v.toString());
+                consumerSummaries.stream().forEach(c -> {
+                    offsets.forEach((k, v) -> {
+                                TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
+                                Long lag = getLogEndOffset(topicPartition) - new Long(v.toString());
 
-                            gaugeOffsetLag.labels(c.clientId(), c.host(), group, String.valueOf(k.partition()), k.topic()).set(new Double(v.toString()));
-                            gaugeCurrentOffset.labels(c.clientId(), c.host(), group, String.valueOf(k.partition()), k.topic()).set(lag);
-                        }
-                );
-            });
-        }
+                                gaugeOffsetLag.labels(c.clientId(), c.host(), group, String.valueOf(k.partition()), k.topic()).set(new Long(v.toString()));
+                                gaugeCurrentOffset.labels(c.clientId(), c.host(), group, String.valueOf(k.partition()), k.topic()).set(lag);
+                            }
+                    );
+                });
+            }
+        });
     }
 
     private long getLogEndOffset(TopicPartition topicPartition) {

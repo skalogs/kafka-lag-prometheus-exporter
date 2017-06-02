@@ -13,15 +13,38 @@
  */
 package io.adopteunops.monitoring.kafka.exporter;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import io.adopteunops.monitoring.prometheus.ExposePrometheusMetricServlet;
 
 public class Main {
-    public static void main(String... args) throws Exception {
-        KafkaExporter kafkaExporter = new KafkaExporter("localhost", 9092);
 
-        try (ExposePrometheusMetricServlet prometheusMetricServlet = new ExposePrometheusMetricServlet(8080, kafkaExporter)) {
-            prometheusMetricServlet.start();
-            kafkaExporter.updateMetrics();
+    @Parameter(names = "--kafka-host", description = "Kafka hostname", required = true)
+    public String kafkaHostname;
+
+    @Parameter(names = "--kafka-port", description = "Kafka port")
+    public int kafkaPort = 9092;
+
+    @Parameter(names = "--help", help = true)
+    private boolean help = false;
+
+    public static void main(String... args) throws Exception {
+        Main main = new Main();
+        JCommander jcommander = JCommander.newBuilder()
+                .addObject(main)
+                .build();
+
+        jcommander.parse(args);
+
+        if (main.help) {
+            jcommander.usage();
+        } else {
+            KafkaExporter kafkaExporter = new KafkaExporter(main.kafkaHostname, main.kafkaPort);
+
+            try (ExposePrometheusMetricServlet prometheusMetricServlet = new ExposePrometheusMetricServlet(8080, kafkaExporter)) {
+                prometheusMetricServlet.start();
+                kafkaExporter.updateMetrics();
+            }
         }
     }
 }
