@@ -13,17 +13,16 @@
  */
 package io.adopteunops.monitoring.prometheus;
 
-import io.adopteunops.monitoring.kafka.exporter.KafkaExporter;
 import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-public class ExposePrometheusMetricServlet implements AutoCloseable {
+public class ExposePrometheusMetricsServer implements AutoCloseable {
 
     private final Server server;
 
-    public ExposePrometheusMetricServlet(int port, KafkaExporter exporter) {
+    public ExposePrometheusMetricsServer(int port) {
         this.server = new Server(port);
         ServletContextHandler context = new ServletContextHandler();
         context.setContextPath("/");

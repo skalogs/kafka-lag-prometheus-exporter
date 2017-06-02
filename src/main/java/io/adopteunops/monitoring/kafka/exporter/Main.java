@@ -15,7 +15,7 @@ package io.adopteunops.monitoring.kafka.exporter;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import io.adopteunops.monitoring.prometheus.ExposePrometheusMetricServlet;
+import io.adopteunops.monitoring.prometheus.ExposePrometheusMetricsServer;
 
 public class Main {
 
@@ -24,6 +24,9 @@ public class Main {
 
     @Parameter(names = "--kafka-port", description = "Kafka port")
     public int kafkaPort = 9092;
+
+    @Parameter(names = "--port", description = "Exporter port")
+    public int port = 7979;
 
     @Parameter(names = "--help", help = true)
     private boolean help = false;
@@ -41,7 +44,7 @@ public class Main {
         } else {
             KafkaExporter kafkaExporter = new KafkaExporter(main.kafkaHostname, main.kafkaPort);
 
-            try (ExposePrometheusMetricServlet prometheusMetricServlet = new ExposePrometheusMetricServlet(8080, kafkaExporter)) {
+            try (ExposePrometheusMetricsServer prometheusMetricServlet = new ExposePrometheusMetricsServer(main.port)) {
                 prometheusMetricServlet.start();
                 kafkaExporter.updateMetrics();
             }
