@@ -13,7 +13,6 @@
  */
 package io.adopteunops.monitoring.kafka.exporter;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Gauge;
 import kafka.admin.AdminClient;
 import kafka.coordinator.GroupOverview;
@@ -27,26 +26,20 @@ import java.util.stream.Collectors;
 
 public class KafkaExporter {
 
-    private final CollectorRegistry registry;
     private static Gauge gaugeOffsetLag;
     private static Gauge gaugeCurrentOffset;
 
     private final AdminClient adminClient;
-    private KafkaConsumer<String, String> consumer;
+    private final KafkaConsumer<String, String> consumer;
 
     public KafkaExporter(String kafkaHostname, int kafkaPort) {
-        this.registry = new CollectorRegistry();
         this.adminClient = createAdminClient(kafkaHostname, kafkaPort);
-
-        if (this.consumer == null) {
-            consumer = createNewConsumer(kafkaHostname, kafkaPort);
-        }
-
+        this.consumer = createNewConsumer(kafkaHostname, kafkaPort);
         registerMetrics();
     }
 
 
-    public void registerMetrics() {
+    private void registerMetrics() {
         gaugeOffsetLag = Gauge.build()
                 .name("kafka_broker_consumer_group_offset_lag")
                 .help("Offset lag of a topic/partition")
@@ -58,9 +51,6 @@ public class KafkaExporter {
                 .help("Current consumed offset of a topic/partition")
                 .labelNames("client_id", "consumer_address", "group_id", "partition", "topic")
                 .register();
-
-        registry.register(gaugeCurrentOffset);
-        registry.register(gaugeOffsetLag);
     }
 
 
@@ -71,7 +61,7 @@ public class KafkaExporter {
         return AdminClient.create(props);
     }
 
-    public void updateMetrics() {
+    public synchronized void updateMetrics() {
         Collection<GroupOverview> groupOverviews = JavaConverters.asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
         List<String> groups = groupOverviews.stream().map(t -> t.groupId()).collect(Collectors.toList());
 

@@ -16,6 +16,12 @@ package io.adopteunops.monitoring.kafka.exporter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import io.adopteunops.monitoring.prometheus.ExposePrometheusMetricsServer;
+import io.prometheus.client.exporter.MetricsServlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 public class Main {
 
@@ -43,11 +49,16 @@ public class Main {
             jcommander.usage();
         } else {
             KafkaExporter kafkaExporter = new KafkaExporter(main.kafkaHostname, main.kafkaPort);
+            MetricsServlet metricsServlet = new MetricsServlet() {
+                @Override
+                protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+                    kafkaExporter.updateMetrics();
+                    super.doGet(req, resp);
+                }
+            };
 
-            try (ExposePrometheusMetricsServer prometheusMetricServlet = new ExposePrometheusMetricsServer(main.port)) {
-                prometheusMetricServlet.start();
-                kafkaExporter.updateMetrics();
-            }
+            ExposePrometheusMetricsServer prometheusMetricServlet = new ExposePrometheusMetricsServer(main.port, metricsServlet);
+            prometheusMetricServlet.start();
         }
     }
 }
