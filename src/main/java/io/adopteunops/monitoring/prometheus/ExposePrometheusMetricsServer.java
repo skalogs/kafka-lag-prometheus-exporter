@@ -13,7 +13,6 @@
  */
 package io.adopteunops.monitoring.prometheus;
 
-import io.adopteunops.monitoring.kafka.exporter.KafkaExporter;
 import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;

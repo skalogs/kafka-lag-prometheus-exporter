@@ -22,34 +22,31 @@ import org.apache.kafka.common.TopicPartition;
 import scala.collection.JavaConverters;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class KafkaExporter {
-
-    private static Gauge gaugeOffsetLag;
-    private static Gauge gaugeCurrentOffset;
+    private final Gauge gaugeOffsetLag;
+    private final Gauge gaugeCurrentOffset;
 
     private final AdminClient adminClient;
     private final KafkaConsumer<String, String> consumer;
+    private final Pattern groupBlacklistPattern;
 
-    public KafkaExporter(String kafkaHostname, int kafkaPort) {
+    public KafkaExporter(String kafkaHostname, int kafkaPort, String groupBlacklistRegexp) {
         this.adminClient = createAdminClient(kafkaHostname, kafkaPort);
         this.consumer = createNewConsumer(kafkaHostname, kafkaPort);
-        registerMetrics();
-    }
-
-
-    private void registerMetrics() {
-        gaugeOffsetLag = Gauge.build()
+        this.groupBlacklistPattern = Pattern.compile(groupBlacklistRegexp);
+        this.gaugeOffsetLag = Gauge.build()
                 .name("kafka_broker_consumer_group_offset_lag")
                 .help("Offset lag of a topic/partition")
-                .labelNames("client_id", "consumer_address", "group_id", "partition", "topic")
+                .labelNames("group_id", "partition", "topic")
                 .register();
 
-        gaugeCurrentOffset = Gauge.build()
+        this.gaugeCurrentOffset = Gauge.build()
                 .name("kafka_broker_consumer_group_current_offset")
                 .help("Current consumed offset of a topic/partition")
-                .labelNames("client_id", "consumer_address", "group_id", "partition", "topic")
+                .labelNames("group_id", "partition", "topic")
                 .register();
     }
 
@@ -61,28 +58,24 @@ public class KafkaExporter {
         return AdminClient.create(props);
     }
 
-    public synchronized void updateMetrics() {
+    synchronized void updateMetrics() {
         Collection<GroupOverview> groupOverviews = JavaConverters.asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
-        List<String> groups = groupOverviews.stream().map(t -> t.groupId()).collect(Collectors.toList());
+        List<String> groups = groupOverviews.stream()
+                .map(t -> t.groupId())
+                .filter(g -> !groupBlacklistPattern.matcher(g).matches())
+                .collect(Collectors.toList());
 
         groups.forEach(group -> {
-            AdminClient.ConsumerGroupSummary consumerGroupSummary = adminClient.describeConsumerGroup(group);
             Map<TopicPartition, Object> offsets = JavaConverters.asJavaMapConverter(adminClient.listGroupOffsets(group)).asJava();
-            Optional<scala.collection.immutable.List<AdminClient.ConsumerSummary>> consumers = Optional.ofNullable(consumerGroupSummary.consumers().getOrElse(null));
-            if (consumers.isPresent()) {
-                Collection<AdminClient.ConsumerSummary> consumerSummaries = JavaConverters.asJavaCollectionConverter(consumers.get()).asJavaCollection();
+            offsets.forEach((k, v) -> {
+                TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
+                Long currentOffset = new Long(v.toString());
+                Long lag = getLogEndOffset(topicPartition) - currentOffset;
+                String partition = String.valueOf(k.partition());
 
-                consumerSummaries.stream().forEach(c -> {
-                    offsets.forEach((k, v) -> {
-                                TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
-                                Long lag = getLogEndOffset(topicPartition) - new Long(v.toString());
-
-                                gaugeOffsetLag.labels(c.clientId(), c.host(), group, String.valueOf(k.partition()), k.topic()).set(new Long(v.toString()));
-                                gaugeCurrentOffset.labels(c.clientId(), c.host(), group, String.valueOf(k.partition()), k.topic()).set(lag);
-                            }
-                    );
-                });
-            }
+                gaugeOffsetLag.labels(group, partition, k.topic()).set(lag);
+                gaugeCurrentOffset.labels(group, partition, k.topic()).set(currentOffset);
+            });
         });
     }
 

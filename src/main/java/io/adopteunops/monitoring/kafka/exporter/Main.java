@@ -34,6 +34,9 @@ public class Main {
     @Parameter(names = "--port", description = "Exporter port")
     public int port = 7979;
 
+    @Parameter(names = "--group-blacklist-regexp", description = "Consumer group blacklist regexp")
+    public String groupBlacklistRegexp = "console-consumer.*";
+
     @Parameter(names = "--help", help = true)
     private boolean help = false;
 
@@ -48,7 +51,7 @@ public class Main {
         if (main.help) {
             jcommander.usage();
         } else {
-            KafkaExporter kafkaExporter = new KafkaExporter(main.kafkaHostname, main.kafkaPort);
+            KafkaExporter kafkaExporter = new KafkaExporter(main.kafkaHostname, main.kafkaPort, main.groupBlacklistRegexp);
             MetricsServlet metricsServlet = new MetricsServlet() {
                 @Override
                 protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
