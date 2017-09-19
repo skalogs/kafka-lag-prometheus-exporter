@@ -15,15 +15,17 @@ package io.adopteunops.monitoring.kafka.exporter;
 
 import io.prometheus.client.Gauge;
 import kafka.admin.AdminClient;
-import kafka.coordinator.GroupOverview;
+import kafka.coordinator.group.GroupOverview;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
-import scala.collection.JavaConverters;
 
 import java.util.*;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
+import static scala.collection.JavaConverters.asJavaCollectionConverter;
+import static scala.collection.JavaConverters.mapAsJavaMapConverter;
 
 public class KafkaExporter {
     private final Gauge gaugeOffsetLag;
@@ -50,7 +52,6 @@ public class KafkaExporter {
                 .register();
     }
 
-
     private AdminClient createAdminClient(String kafkaHostname, int kafkaPort) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaHostname + ":" + kafkaPort);
@@ -59,14 +60,15 @@ public class KafkaExporter {
     }
 
     synchronized void updateMetrics() {
-        Collection<GroupOverview> groupOverviews = JavaConverters.asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
+
+        Collection<GroupOverview> groupOverviews = asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
         List<String> groups = groupOverviews.stream()
-                .map(t -> t.groupId())
+                .map(GroupOverview::groupId)
                 .filter(g -> !groupBlacklistPattern.matcher(g).matches())
-                .collect(Collectors.toList());
+                .collect(toList());
 
         groups.forEach(group -> {
-            Map<TopicPartition, Object> offsets = JavaConverters.asJavaMapConverter(adminClient.listGroupOffsets(group)).asJava();
+            Map<TopicPartition, Object> offsets = mapAsJavaMapConverter(adminClient.listGroupOffsets(group)).asJava();
             offsets.forEach((k, v) -> {
                 TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
                 Long currentOffset = new Long(v.toString());

@@ -18,11 +18,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <prometheus.simpleclient.version>0.0.23</prometheus.simpleclient.version>
-        <kafka.version>0.10.2.0</kafka.version>
+        <prometheus.simpleclient.version>0.0.26</prometheus.simpleclient.version>
+        <kafka.version>0.11.0.1</kafka.version>
         <jetty-servlet.version>9.4.5.v20170502</jetty-servlet.version>
         <javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-        <jcommander.version>1.69</jcommander.version>
+        <jcommander.version>1.72</jcommander.version>
     </properties>
 
     <dependencyManagement>
@@ -34,7 +34,7 @@
             </dependency>
             <dependency>
                 <groupId>org.apache.kafka</groupId>
-                <artifactId>kafka_2.10</artifactId>
+                <artifactId>kafka_2.11</artifactId>
                 <version>${kafka.version}</version>
             </dependency>
 
@@ -80,7 +80,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka_2.10</artifactId>
+            <artifactId>kafka_2.11</artifactId>
         </dependency>
 
         <dependency>
