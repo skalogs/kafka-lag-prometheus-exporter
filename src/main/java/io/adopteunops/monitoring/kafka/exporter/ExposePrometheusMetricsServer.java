@@ -11,14 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.adopteunops.monitoring.prometheus;
+package io.adopteunops.monitoring.kafka.exporter;
 
 import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-public class ExposePrometheusMetricsServer implements AutoCloseable {
+class ExposePrometheusMetricsServer implements AutoCloseable {
 
     private final Server server;
 

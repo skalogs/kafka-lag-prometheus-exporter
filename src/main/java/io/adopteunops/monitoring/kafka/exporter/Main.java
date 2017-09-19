@@ -15,7 +15,6 @@ package io.adopteunops.monitoring.kafka.exporter;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-import io.adopteunops.monitoring.prometheus.ExposePrometheusMetricsServer;
 import io.prometheus.client.exporter.MetricsServlet;
 
 import javax.servlet.ServletException;

@@ -27,7 +27,7 @@ import static java.util.stream.Collectors.toList;
 import static scala.collection.JavaConverters.asJavaCollectionConverter;
 import static scala.collection.JavaConverters.mapAsJavaMapConverter;
 
-public class KafkaExporter {
+class KafkaExporter {
     private final Gauge gaugeOffsetLag;
     private final Gauge gaugeCurrentOffset;
 
