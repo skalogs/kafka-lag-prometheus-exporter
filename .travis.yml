@@ -1,0 +1,19 @@
+language: java
+
+sudo: true
+
+services:
+  - docker
+
+cache:
+  directories:
+    - $HOME/.m2
+jdk:
+  - oraclejdk8
+os:
+  - linux
+
+after_success:
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+  - mvn dockerfile:build
+  - mvn dockerfile:push
