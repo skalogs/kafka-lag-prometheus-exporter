@@ -9,7 +9,7 @@ ENV PROMETHEUS_PORT 7979
 
 ADD startup.sh /usr/bin/startup.sh
 
-ENTRYPOINT ["/usr/bin/startup.sh"]
+CMD ["/usr/bin/startup.sh"]
 
 # Add the service itself
 ARG JAR_FILE
