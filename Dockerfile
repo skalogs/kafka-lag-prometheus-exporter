@@ -1,6 +1,15 @@
 FROM java:8u111-jdk
 
-ENTRYPOINT ["/usr/bin/java", "-jar", "/usr/share/prometheus-exporter/kafka-lag-exporter.jar"]
+ENV KAFKA_HOST kafka
+ENV KAFKA_PORT 9092
+ENV KAFKA_GROUP_BLACKLIST_REGEXP "console-consumer.*"
+ENV SCRAPE_PERIOD 1
+ENV SCRAPE_PERIOD_UNIT MINUTES
+ENV PROMETHEUS_PORT 7979
+
+ADD startup.sh /usr/bin/startup.sh
+
+ENTRYPOINT ["/usr/bin/startup.sh"]
 
 # Add the service itself
 ARG JAR_FILE
