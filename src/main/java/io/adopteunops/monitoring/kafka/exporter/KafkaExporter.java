@@ -31,11 +31,16 @@ class KafkaExporter {
     private final Gauge gaugeOffsetLag;
     private final Gauge gaugeCurrentOffset;
 
-    private final AdminClient adminClient;
+    private AdminClient adminClient;
     private final KafkaConsumer<String, String> consumer;
     private final Pattern groupBlacklistPattern;
 
+    private final String kafkaHostname;
+    private final int kafkaPort;
+    
     public KafkaExporter(String kafkaHostname, int kafkaPort, String groupBlacklistRegexp) {
+        this.kafkaHostname = kafkaHostname;
+        this.kafkaPort = kafkaPort;
         this.adminClient = createAdminClient(kafkaHostname, kafkaPort);
         this.consumer = createNewConsumer(kafkaHostname, kafkaPort);
         this.groupBlacklistPattern = Pattern.compile(groupBlacklistRegexp);
@@ -63,7 +68,6 @@ class KafkaExporter {
 
         try {
 
-            adminClient.awaitBrokers();
             Collection<GroupOverview> groupOverviews = asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
 
             List<String> groups = groupOverviews.stream()
@@ -86,6 +90,7 @@ class KafkaExporter {
 
         } catch (java.lang.RuntimeException ex) {
             ex.printStackTrace();
+            this.adminClient = createAdminClient(this.kafkaHostname, this.kafkaPort);
         }
     }
 
