@@ -61,30 +61,26 @@ class KafkaExporter {
 
    synchronized void updateMetrics() {
 
-        try {
-            Collection<GroupOverview> groupOverviews = asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
+        adminClient.awaitBrokers();
+        Collection<GroupOverview> groupOverviews = asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
 
-            List<String> groups = groupOverviews.stream()
-                    .map(GroupOverview::groupId)
-                    .filter(g -> !groupBlacklistPattern.matcher(g).matches())
-                    .collect(toList());
+        List<String> groups = groupOverviews.stream()
+            .map(GroupOverview::groupId)
+            .filter(g -> !groupBlacklistPattern.matcher(g).matches())
+            .collect(toList());
 
-            groups.forEach(group -> {
-                Map<TopicPartition, Object> offsets = mapAsJavaMapConverter(adminClient.listGroupOffsets(group)).asJava();
-                offsets.forEach((k, v) -> {
-                    TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
-                    Long currentOffset = new Long(v.toString());
-                    Long lag = getLogEndOffset(topicPartition) - currentOffset;
-                    String partition = String.valueOf(k.partition());
+        groups.forEach(group -> {
+            Map<TopicPartition, Object> offsets = mapAsJavaMapConverter(adminClient.listGroupOffsets(group)).asJava();
+            offsets.forEach((k, v) -> {
+                TopicPartition topicPartition = new TopicPartition(k.topic(), k.partition());
+                Long currentOffset = new Long(v.toString());
+                Long lag = getLogEndOffset(topicPartition) - currentOffset;
+                String partition = String.valueOf(k.partition());
 
-                    gaugeOffsetLag.labels(group, partition, k.topic()).set(lag);
-                    gaugeCurrentOffset.labels(group, partition, k.topic()).set(currentOffset);
-                });
+                gaugeOffsetLag.labels(group, partition, k.topic()).set(lag);
+                gaugeCurrentOffset.labels(group, partition, k.topic()).set(currentOffset);
             });
-
-        } catch (java.lang.RuntimeException ex) {
-            ex.printStackTrace();
-        }
+        });
     }
 
     private long getLogEndOffset(TopicPartition topicPartition) {
