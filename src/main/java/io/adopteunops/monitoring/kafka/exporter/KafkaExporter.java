@@ -62,6 +62,8 @@ class KafkaExporter {
    synchronized void updateMetrics() {
 
         try {
+
+            adminClient.awaitBrokers();
             Collection<GroupOverview> groupOverviews = asJavaCollectionConverter(adminClient.listAllConsumerGroupsFlattened()).asJavaCollection();
 
             List<String> groups = groupOverviews.stream()
