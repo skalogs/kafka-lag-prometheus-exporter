@@ -16,12 +16,16 @@ package io.adopteunops.monitoring.kafka.exporter;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import io.prometheus.client.exporter.MetricsServlet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 public class Main {
+
+    private static Logger log = LoggerFactory.getLogger(Main.class);
 
     @Parameter(names = "--kafka-host", description = "Kafka hostname", required = true)
     public String kafkaHostname;
@@ -45,6 +49,9 @@ public class Main {
     private boolean help = false;
 
     public static void main(String... args) throws Exception {
+
+        log.info("Starting Kafka Exporter");
+
         Main main = new Main();
         JCommander jcommander = JCommander.newBuilder()
                 .addObject(main)
@@ -68,5 +75,4 @@ public class Main {
             prometheusMetricServlet.start();
         }
     }
-
 }
