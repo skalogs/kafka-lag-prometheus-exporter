@@ -11,7 +11,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.adopteunops.monitoring.kafka.exporter;
+package io.skalogs.monitoring.kafka.exporter;
 
 import io.prometheus.client.exporter.MetricsServlet;
 import org.eclipse.jetty.server.Server;
