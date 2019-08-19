@@ -9,7 +9,8 @@
 
 
     <scm>
-        <connection>scm:git:https://git@github.com/skalogs/kafka-prometheus-exporter.git</connection>
+        <connection>scm:git:git@github.com:skalogs/kafka-lag-prometheus-exporter.git</connection>
+        <developerConnection>scm:git:git@github.com:skalogs/kafka-lag-prometheus-exporter.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
