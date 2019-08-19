@@ -4,13 +4,13 @@
 
     <groupId>io.adopteunops.monitoring</groupId>
     <artifactId>kafka-prometheus-exporter</artifactId>
-    <version>1.1</version>
+    <version>1.2-SNAPSHOT</version>
 
 
     <scm>
         <connection>scm:git:git@github.com:skalogs/kafka-lag-prometheus-exporter.git</connection>
         <developerConnection>scm:git:git@github.com:skalogs/kafka-lag-prometheus-exporter.git</developerConnection>
-        <tag>kafka-prometheus-exporter-1.1</tag>
+        <tag>HEAD</tag>
     </scm>
 
 
